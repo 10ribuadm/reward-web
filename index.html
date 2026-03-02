@@ -2,313 +2,208 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>NontonHepi - Dapatkan Reward Keren!</title>
-
-    <!-- Google Fonts & Animate.css -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>NontonAsik - Full Screen Reward</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-
-    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
-    <!-- Firebase -->
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <style>
         :root {
-            --primary-color: #6a11cb;
-            --secondary-color: #2575fc;
-            --accent-color: #03dac6;
-            --text-light: #f8f9fa;
-            --text-dark: #212529;
-            --bg-glass: rgba(255, 255, 255, 0.15);
+            --bg-dark: #0f172a;
+            --accent: #00f2fe;
+            --glass: rgba(255, 255, 255, 0.05);
+            --glass-border: rgba(255, 255, 255, 0.1);
         }
 
         body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(45deg, var(--primary-color), var(--secondary-color));
-            background-attachment: fixed;
-            color: var(--text-light);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 100vh;
-            padding: 1rem;
+            font-family: 'Quicksand', sans-serif;
+            background-color: var(--bg-dark);
+            color: white;
+            margin: 0;
+            padding: 0;
+            overflow: hidden; /* Mencegah scroll bodi utama */
+            height: 100vh;
         }
 
-        .glass-container {
-            background: var(--bg-glass);
-            backdrop-filter: blur(25px);
-            -webkit-backdrop-filter: blur(25px);
-            border-radius: 20px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            padding: 2rem;
-            box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
-        }
-
-        #loadingOverlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.7);
+        /* Container Utama */
+        .app-wrapper {
             display: flex;
             flex-direction: column;
+            height: 100vh;
+            max-width: 500px; /* Limit lebar untuk tampilan mobile di PC */
+            margin: 0 auto;
+            position: relative;
+            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
+        }
+
+        /* Header Statis */
+        header {
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            z-index: 1000;
+            border-bottom: 1px solid var(--glass-border);
+        }
+
+        .points-badge {
+            background: var(--glass);
+            padding: 5px 15px;
             border-radius: 20px;
-            text-align: center;
-        }
-        
-        .spinner-border {
-             width: 3rem;
-             height: 3rem;
-             color: var(--accent-color);
-        }
-
-        .header-title {
+            border: 1px solid var(--accent);
+            color: var(--accent);
             font-weight: 700;
-            color: var(--text-light);
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
 
-        .video-box {
+        /* Konten Scrollable */
+        .content-area {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            padding-bottom: 100px; /* Space untuk Navbar */
+        }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+
+        /* Card Style */
+        .card-asik {
+            background: var(--glass);
+            border: 1px solid var(--glass-border);
+            border-radius: 20px;
+            padding: 15px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        /* Bottom Navbar */
+        .bottom-nav {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            right: 20px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(20px);
+            border-radius: 25px;
+            display: flex;
+            justify-content: space-around;
+            padding: 15px;
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        }
+
+        .nav-item {
+            color: #64748b;
+            text-align: center;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .nav-item.active {
+            color: var(--accent);
+            transform: translateY(-5px);
+        }
+
+        .nav-item i { font-size: 1.5rem; }
+        .nav-item span { display: block; font-size: 0.7rem; margin-top: 5px; }
+
+        /* Video Iframe Wrapper */
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-top: 56.25%; /* 16:9 Aspect Ratio */
             border-radius: 15px;
             overflow: hidden;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
-            background: #000;
         }
-        video {
-            width: 100%;
-            display: block;
+        .video-container iframe {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
         }
 
-        .stats-card {
-            background: var(--bg-glass);
-            border-radius: 15px;
-            padding: 1.5rem;
-            text-align: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        #points {
-            font-size: 2.5rem;
-            font-weight: 700;
-            color: var(--accent-color);
-            line-height: 1;
-        }
-
-        .btn-claim {
-            background-color: var(--accent-color);
-            color: var(--text-dark);
-            border: none;
-            padding: 12px 30px;
-            border-radius: 50px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-            display: none; /* Muncul setelah video selesai */
-        }
-        .btn-claim:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 4px 20px rgba(3, 218, 198, 0.4);
-        }
-        .btn-claim:disabled {
-            background-color: #aaa;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-        
-        #user-id {
-            font-size: 0.8rem;
-            color: var(--text-light);
-            opacity: 0.7;
-            word-break: break-all;
-        }
+        /* Custom Scrollbar */
+        .content-area::-webkit-scrollbar { width: 5px; }
+        .content-area::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 10px; }
     </style>
 </head>
 <body>
 
-    <main class="container">
-        <div id="appContainer" class="glass-container text-center animate__animated animate__fadeInUp" style="display: none;">
-            
-            <div id="loadingOverlay">
-                <div class="spinner-border mb-3" role="status">
-                    <span class="visually-hidden">Loading...</span>
+<div class="app-wrapper">
+    <header>
+        <h4 class="m-0 fw-bold">Nonton<span style="color:var(--accent)">Asik</span></h4>
+        <div class="points-badge">
+            <i class="fas fa-coins me-1"></i> <span id="user-points">0</span>
+        </div>
+    </header>
+
+    <div class="content-area">
+        <div id="tab-video" class="tab-content active animate__animated animate__fadeIn">
+            <h5 class="mb-3">Tonton & Dapat Poin</h5>
+            <div class="card-asik p-0">
+                <div class="video-container">
+                    <iframe id="yt-player" src="https://www.youtube.com/embed/zN97v_2vT9U?enablejsapi=1" frameborder="0"></iframe>
                 </div>
-                <p class="mb-0">Menyambungkan ke Server...</p>
+            </div>
+            <button id="claimBtn" class="btn btn-info w-100 rounded-pill fw-bold" style="display:none">🎉 KLAIM POIN</button>
+        </div>
+
+        <div id="tab-baca" class="tab-content animate__animated animate__fadeIn">
+            <h5 class="mb-3">Bacaan Santai</h5>
+            <div class="card-asik">
+                <h6 class="text-info">Cerpen: Malam di Jerowaru</h6>
+                <p style="font-size: 0.9rem; color: #cbd5e1;">Di bawah langit malam Lombok Timur, Asrul sedang merancang masa depan...</p>
+                <small class="text-muted">Baca selengkapnya...</small>
+            </div>
             </div>
 
-            <header class="mb-4">
-                <h1 class="header-title">NontonHepi</h1>
-                <p class="lead" style="font-weight: 300;">Tonton video, kumpulkan poin, dan raih hadiahnya!</p>
-            </header>
-
-            <section id="videoBox" class="video-box mb-4" style="pointer-events: none; opacity: 0.5;">
-                <video id="rewardVideo" playsinline>
-                    <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
-                    Browser Anda tidak mendukung tag video.
-                </video>
-            </section>
-
-            <section class="row justify-content-center align-items-center gy-3">
-                <div class="col-md-6">
-                    <div class="stats-card">
-                        <h6 class="mb-0" style="font-weight: 300;">POIN ANDA</h6>
-                        <p id="points">0</p>
-                    </div>
+        <div id="tab-profil" class="tab-content animate__animated animate__fadeIn">
+            <div class="text-center mt-4">
+                <div class="mb-3">
+                    <i class="fas fa-user-circle fa-4x text-accent"></i>
                 </div>
-                <div class="col-md-6">
-                    <button id="claimBtn" class="btn-claim w-100 animate__animated" onclick="claimReward()">
-                        🎉 Ambil 10 Poin!
-                    </button>
+                <h5 id="display-name">User Anonim</h5>
+                <p id="user-id" class="small text-muted">ID: ---</p>
+                <hr style="border-color: var(--glass-border)">
+                <div class="d-grid gap-2">
+                    <button class="btn btn-outline-light btn-sm rounded-pill"><i class="fas fa-history me-2"></i>Riwayat Reward</button>
+                    <button class="btn btn-outline-danger btn-sm rounded-pill"><i class="fas fa-sign-out-alt me-2"></i>Logout</button>
                 </div>
-            </section>
-
-            <footer class="mt-4">
-                <p id="user-id">Memeriksa status login...</p>
-            </footer>
-
+            </div>
         </div>
-    </main>
+    </div>
 
-    <script>
-        // === KONFIGURASI FIREBASE ===
-        const firebaseConfig = {
-            apiKey: "AIzaSyD_5ct08uYoMVSualfGPW8Oiq4y7C9SzJc",
-            authDomain: "nontonhepi-4d7a9.firebaseapp.com",
-            databaseURL: "https://nontonhepi-4d7a9-default-rtdb.asia-southeast1.firebasedatabase.app",
-            projectId: "nontonhepi-4d7a9",
-            storageBucket: "nontonhepi-4d7a9.appspot.com",
-            messagingSenderId: "413442384337",
-            appId: "1:413442384337:web:af92bdc26bc0adb32440f0",
-            measurementId: "G-PV4T810FRW"
-        };
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('tab-video', this)">
+            <i class="fas fa-play-circle"></i>
+            <span>Nonton</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('tab-baca', this)">
+            <i class="fas fa-book-open"></i>
+            <span>Baca</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('tab-profil', this)">
+            <i class="fas fa-user"></i>
+            <span>Profil</span>
+        </div>
+    </nav>
+</div>
 
-        // Initialize Firebase
-        firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.database();
-
-        // Elemen UI
-        const appContainer = document.getElementById('appContainer');
-        const video = document.getElementById('rewardVideo');
-        const pointsDisplay = document.getElementById('points');
-        const claimBtn = document.getElementById('claimBtn');
-        const userIdDisplay = document.getElementById('user-id');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const videoBox = document.getElementById('videoBox');
-
-        let currentUser = null;
-        let lastTime = 0;
-        let hasClaimed = false;
-
-        // Tampilkan container utama setelah DOM siap
-        document.addEventListener('DOMContentLoaded', () => {
-            appContainer.style.display = 'block';
-        });
-
-        // --- AUTHENTICATION & USER HANDLING ---
-        auth.onAuthStateChanged(user => {
-            if (user) {
-                currentUser = user;
-                userIdDisplay.innerText = `ID: ${user.uid.substring(0, 12)}...`;
-                
-                loadingOverlay.style.display = 'none';
-                videoBox.style.pointerEvents = 'auto';
-                videoBox.style.opacity = '1';
-
-                loadUserPoints(user.uid);
-            } else {
-                loadingOverlay.querySelector('p').innerText = 'Login anonim...';
-                auth.signInAnonymously().catch(error => {
-                    console.error("Gagal login anonim:", error);
-                    userIdDisplay.innerText = "Gagal terhubung.";
-                    loadingOverlay.querySelector('p').innerText = "Gagal terhubung. Coba refresh.";
-                });
-            }
-        });
-
-        // --- REALTIME DATABASE LOGIC ---
-        function loadUserPoints(uid) {
-            db.ref('users/' + uid).on('value', (snapshot) => {
-                const data = snapshot.val();
-                pointsDisplay.innerText = data ? data.points : 0;
-                 if (!data) {
-                    db.ref('users/' + uid).set({ points: 0 });
-                }
-            });
-        }
-
-        function savePoints(uid, pointsToAdd) {
-            const userRef = db.ref('users/' + uid + '/points');
-            return userRef.transaction((currentPoints) => (currentPoints || 0) + pointsToAdd);
-        }
-
-        // --- VIDEO & REWARD LOGIC ---
-        video.addEventListener('click', () => {
-            if (video.paused) { video.play(); } else { video.pause(); }
-        });
-
-        video.addEventListener('timeupdate', () => {
-            // Anti-skip sederhana
-            if (video.currentTime > lastTime + 1.5) {
-                video.currentTime = lastTime;
-            }
-            lastTime = video.currentTime;
-        });
-
-        video.addEventListener('ended', () => {
-            if (!hasClaimed) {
-                claimBtn.style.display = 'block';
-                claimBtn.classList.add('animate__tada'); // Tambahkan animasi
-            }
-        });
+<script>
+    // Logika Ganti Tab
+    function switchTab(tabId, element) {
+        // Hilangkan class active di semua tab & nav
+        document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         
-        video.addEventListener('play', () => {
-            claimBtn.style.display = 'none';
-            claimBtn.classList.remove('animate__tada');
+        // Aktifkan yang dipilih
+        document.getElementById(tabId).classList.add('active');
+        element.classList.add('active');
+    }
 
-            // Reset state jika video diputar ulang
-            if (video.currentTime === 0) {
-                 hasClaimed = false;
-            }
-        });
+    // Integrasi Firebase kamu masukkan di sini seperti sebelumnya
+    // Pastikan database URL dan API Key benar agar poin muncul di header
+</script>
 
-        function claimReward() {
-            if (currentUser && !hasClaimed) {
-                hasClaimed = true;
-                claimBtn.disabled = true;
-                claimBtn.innerText = 'Memproses...';
-
-                savePoints(currentUser.uid, 10)
-                    .then(() => {
-                        console.log('Transaksi BERHASIL!');
-                        claimBtn.style.display = 'none';
-                        // Mungkin bisa tambahkan notifikasi sukses yang lebih baik dari alert
-                    })
-                    .catch((error) => {
-                         console.error('Transaksi GAGAL:', error);
-                         // Beri tahu pengguna jika ada masalah
-                         alert('Gagal menyimpan poin. Silakan coba lagi.');
-                         hasClaimed = false; // Izinkan coba lagi
-                    })
-                    .finally(() => {
-                        claimBtn.disabled = false;
-                        claimBtn.innerText = '🎉 Ambil 10 Poin!';
-                    });
-            } else {
-                 if (!currentUser) alert("Error: Pengguna tidak ditemukan. Silakan refresh.");
-            }
-        }
-    </script>
 </body>
 </html>
