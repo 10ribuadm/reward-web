@@ -22,6 +22,7 @@
             color: #333;
         }
         .container {
+            position: relative; /* Diperlukan untuk overlay */
             background: white;
             padding: 20px;
             border-radius: 15px;
@@ -29,6 +30,21 @@
             width: 90%;
             max-width: 400px;
             text-align: center;
+        }
+        #loadingOverlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.9);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 15px;
+            font-weight: bold;
+            color: #6200ee;
         }
         h1 { color: #6200ee; margin-bottom: 10px; font-size: 1.5rem; }
         .video-box {
@@ -67,13 +83,17 @@
 <body>
 
     <div class="container">
+        <div id="loadingOverlay">
+            <p>Menyambungkan ke server...</p>
+        </div>
+
         <h1>NontonHepi</h1>
         <p id="user-info">Memeriksa status login...</p>
 
         <p class="instruction">Tonton video sampai habis untuk mendapatkan poin!</p>
 
-        <div class="video-box">
-            <!-- Kontrol video dihapus untuk mencegah kecurangan -->
+        <!-- Video dinonaktifkan secara default -->
+        <div id="videoBox" class="video-box" style="pointer-events: none; opacity: 0.5;">
             <video id="rewardVideo" playsinline>
                 <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
                 Browser Anda tidak mendukung tag video.
@@ -103,29 +123,39 @@
         // Initialize Firebase
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
-        const db = firebase.database(); // Menggunakan Realtime Database
+        const db = firebase.database();
 
+        // Elemen UI
         const video = document.getElementById('rewardVideo');
         const pointsDisplay = document.getElementById('points');
         const claimBtn = document.getElementById('claimBtn');
         const userInfo = document.getElementById('user-info');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const videoBox = document.getElementById('videoBox');
 
         let currentUser = null;
         let lastTime = 0;
-        let hasClaimed = false; // Mencegah klaim ganda
+        let hasClaimed = false;
 
         // --- AUTHENTICATION & USER HANDLING ---
         auth.onAuthStateChanged(user => {
             if (user) {
-                // Pengguna sudah login (atau sesi sebelumnya ada)
+                console.log("onAuthStateChanged: Pengguna ditemukan!", user);
                 currentUser = user;
                 userInfo.innerText = `ID Pengguna: ${user.uid.substring(0, 8)}...`;
+                
+                // AKTIFKAN UI SETELAH LOGIN BERHASIL
+                loadingOverlay.style.display = 'none';
+                videoBox.style.pointerEvents = 'auto';
+                videoBox.style.opacity = '1';
+
                 loadUserPoints(user.uid);
             } else {
-                // Login sebagai pengguna anonim jika belum ada sesi
+                console.log("onAuthStateChanged: Tidak ada pengguna, mencoba login anonim...");
                 auth.signInAnonymously().catch(error => {
                     console.error("Gagal login anonim:", error);
                     userInfo.innerText = "Gagal terhubung. Coba refresh halaman.";
+                    loadingOverlay.innerHTML = "<p>Gagal terhubung ke server.<br>Silakan refresh halaman.</p>";
                 });
             }
         });
@@ -137,7 +167,6 @@
                 const userPoints = data ? data.points : 0;
                 pointsDisplay.innerText = userPoints;
                  if (!data) {
-                    // Buat data baru jika pengguna belum ada di database
                     db.ref('users/' + uid).set({ points: 0 });
                 }
             });
@@ -156,7 +185,7 @@
                     console.error('Transaksi GAGAL:', error);
                     alert('Gagal menyimpan poin. Terjadi kesalahan: ' + error);
                 } else if (!committed) {
-                    console.warn('Transaksi tidak berhasil di-commit. Mungkin ada pembaruan data dari klien lain.');
+                    console.warn('Transaksi tidak berhasil di-commit.');
                 } else {
                     console.log('Transaksi BERHASIL! Poin sekarang:', snapshot.val());
                 }
@@ -164,25 +193,15 @@
         }
 
         // --- VIDEO & REWARD LOGIC ---
-        // Mulai video saat di-tap
         video.addEventListener('click', () => {
-            if (video.paused) {
-                video.play();
-            } else {
-                video.pause();
-            }
+            if (video.paused) { video.play(); } else { video.pause(); }
         });
 
-        // Mencegah video di-skip
         video.addEventListener('timeupdate', () => {
-            // Jika pengguna mencoba melompat ke depan, kembalikan
-            if (video.currentTime > lastTime + 1) {
-                video.currentTime = lastTime;
-            }
+            if (video.currentTime > lastTime + 1) { video.currentTime = lastTime; }
             lastTime = video.currentTime;
         });
 
-        // Tampilkan tombol klaim saat video selesai
         video.addEventListener('ended', () => {
             if (!hasClaimed) {
                 claimBtn.style.display = 'block';
@@ -190,21 +209,19 @@
             }
         });
         
-        // Reset state jika video diputar ulang
         video.addEventListener('play', () => {
             claimBtn.style.display = 'none';
             hasClaimed = false;
         });
 
-        // Fungsi untuk klaim hadiah
         function claimReward() {
             console.log("claimReward dipanggil. currentUser:", currentUser, "hasClaimed:", hasClaimed);
             if (currentUser && !hasClaimed) {
-                hasClaimed = true; // Tandai sudah klaim
+                hasClaimed = true;
                 console.log("Memanggil savePoints untuk user:", currentUser.uid);
                 savePoints(currentUser.uid, 10);
                 alert("Selamat! 10 Poin telah ditambahkan.");
-                claimBtn.style.display = 'none'; // Sembunyikan tombol lagi
+                claimBtn.style.display = 'none';
             } else {
                 console.error("Tidak bisa klaim. Pengguna belum login atau sudah pernah klaim.");
                 if (!currentUser) alert("Error: Pengguna tidak ditemukan. Silakan refresh halaman.");
