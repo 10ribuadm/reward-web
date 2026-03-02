@@ -3,162 +3,70 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NontonAsik - Shorts Reward</title>
+    <title>NontonAsik - Shorts Swipe</title>
 
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
     
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
-    <script src="https://www.youtube.com/iframe_api"></script>
 
     <style>
-        body, html {
-            margin: 0; padding: 0;
-            height: 100%; width: 100%;
-            background: #000;
-            font-family: 'Poppins', sans-serif;
-            overflow: hidden;
-        }
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; font-family: 'Poppins', sans-serif; overflow: hidden; }
+        
+        /* Container Swiper Full Screen */
+        .swiper { width: 100%; height: 100vh; }
+        .swiper-slide { position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
 
-        /* Container Video Full Layar */
-        .shorts-container {
-            position: relative;
-            height: 100vh;
-            width: 100vw;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        #ytPlayer {
-            width: 100vw;
-            height: 100vh;
-            pointer-events: none; /* Mencegah user klik iklan/pause manual agar poin aman */
-        }
+        /* Video Iframe Style */
+        .video-container { width: 100%; height: 100%; position: relative; }
+        iframe { width: 100%; height: 100%; pointer-events: none; }
 
         /* Overlay UI */
         .ui-overlay {
-            position: absolute;
-            inset: 0;
-            background: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, transparent 40%, rgba(0,0,0,0.4) 100%);
+            position: absolute; inset: 0;
+            background: linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 50%, rgba(0,0,0,0.3) 100%);
+            z-index: 10; padding: 20px;
+            display: flex; flex-direction: column; justify-content: space-between;
             pointer-events: none;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            padding: 20px;
-            z-index: 10;
         }
 
-        .header-info {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            pointer-events: auto;
+        .header-info { display: flex; justify-content: space-between; align-items: center; pointer-events: auto; }
+        .points-badge { background: rgba(3, 218, 198, 0.2); border: 1px solid #03dac6; padding: 5px 15px; border-radius: 20px; color: #03dac6; font-weight: 700; }
+        
+        .video-info { margin-bottom: 50px; pointer-events: auto; }
+        
+        /* Tombol Klaim */
+        .btn-claim {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: #03dac6; color: #000; border: none; padding: 15px 30px; border-radius: 50px;
+            font-weight: 700; z-index: 100; display: none; pointer-events: auto;
+            box-shadow: 0 0 30px rgba(3, 218, 198, 0.5);
         }
 
-        .points-badge {
-            background: rgba(3, 218, 198, 0.2);
-            backdrop-filter: blur(10px);
-            border: 1px solid #03dac6;
-            padding: 5px 15px;
-            border-radius: 20px;
-            color: #03dac6;
-            font-weight: 700;
-        }
-
-        .video-meta {
-            margin-bottom: 80px;
-            pointer-events: auto;
-        }
-
-        /* Floating Claim Button */
-        .btn-claim-shorts {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #03dac6;
-            color: #000;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 50px;
-            font-weight: 700;
-            box-shadow: 0 0 30px rgba(3, 218, 198, 0.6);
-            z-index: 100;
-            display: none;
-            pointer-events: auto;
-        }
-
-        /* Navigation Buttons */
-        .side-nav {
-            position: absolute;
-            right: 15px;
-            bottom: 120px;
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-            pointer-events: auto;
-        }
-
-        .nav-icon {
-            background: rgba(255,255,255,0.1);
-            width: 50px; height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.2rem;
-            backdrop-filter: blur(10px);
-            color: white;
-        }
-
-        #loadingOverlay {
-            position: fixed; inset: 0; background: #000;
-            z-index: 9999; display: flex; flex-direction: column;
-            align-items: center; justify-content: center; color: white;
+        #mute-notice {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.6); color: white; padding: 10px 20px; border-radius: 10px;
+            z-index: 50; display: block; text-align: center;
         }
     </style>
 </head>
 <body>
 
-<div id="loadingOverlay">
-    <div class="spinner-border text-info mb-3"></div>
-    <p>Menyiapkan Konten Lucu...</p>
+<div id="mute-notice" onclick="unmuteAll()"><i class="fas fa-volume-mute mb-2 d-block fa-2x"></i> Ketuk untuk Suara</div>
+
+<div class="swiper mySwiper">
+    <div class="swiper-wrapper" id="video-wrapper">
+        </div>
 </div>
 
-<div class="shorts-container">
-    <div id="ytPlayer"></div>
-    
-    <div class="ui-overlay">
-        <div class="header-info">
-            <h4 class="m-0 fw-bold">Nonton<span style="color:#03dac6">Asik</span></h4>
-            <div class="points-badge">
-                <i class="fas fa-coins"></i> <span id="points">0</span>
-            </div>
-        </div>
-
-        <div class="video-meta">
-            <h6 id="videoTitle" class="mb-1">Memuat video...</h6>
-            <p class="small opacity-75">Tonton sampai habis untuk dapat 10 Poin!</p>
-        </div>
-    </div>
-
-    <button id="claimBtn" class="btn-claim-shorts animate__animated" onclick="claimReward()">
-        🎉 AMBIL POIN!
-    </button>
-
-    <div class="side-nav">
-        <div class="nav-icon" onclick="nextVideo()"><i class="fas fa-step-forward"></i></div>
-        <div class="nav-icon"><i class="fas fa-heart"></i></div>
-        <div class="nav-icon"><i class="fas fa-share"></i></div>
-    </div>
-</div>
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
-    // === FIREBASE LOGIC (TIDAK BERUBAH) ===
+    // === KONFIGURASI FIREBASE ANDA ===
     const firebaseConfig = {
         apiKey: "AIzaSyD_5ct08uYoMVSualfGPW8Oiq4y7C9SzJc",
         authDomain: "nontonhepi-4d7a9.firebaseapp.com",
@@ -169,99 +77,111 @@
         appId: "1:413442384337:web:af92bdc26bc0adb32440f0",
         measurementId: "G-PV4T810FRW"
     };
-
     firebase.initializeApp(firebaseConfig);
     const auth = firebase.auth();
     const db = firebase.database();
 
-    let player;
     let currentUser = null;
-    let hasClaimed = false;
-    let videoIndex = 0;
+    let players = {}; // Objek untuk menyimpan semua player YouTube
+    let isMuted = true;
 
-    // Database Video Shorts Lucu (ID YouTube Shorts)
-    const shortsVideos = [
-        { id: "w9k2WhcKl80", title: "Mau ketawa takut dosa 😂" },
-        { id: "BbT3BHpKIvg", title: "Tahan Tawa Warga +62" },
-        { id: "lifSYNqCXo0", title: "Bocah Ngakak Terlucu" },
-        { id: "F7AtzYJPxG8", title: "Hiburan Random Banget" }
+    const shortsList = [
+        { id: "w9k2WhcKl80", title: "Video Lucu 1" },
+        { id: "BbT3BHpKIvg", title: "Video Lucu 2" },
+        { id: "lifSYNqCXo0", title: "Video Lucu 3" },
+        { id: "F7AtzYJPxG8", title: "Video Lucu 4" }
     ];
 
-    auth.onAuthStateChanged(user => {
-        if (user) {
-            currentUser = user;
-            document.getElementById('loadingOverlay').style.display = 'none';
-            loadUserPoints(user.uid);
-        } else {
-            auth.signInAnonymously();
-        }
+    // 1. Render Slides
+    const wrapper = document.getElementById('video-wrapper');
+    shortsList.forEach((v, index) => {
+        wrapper.innerHTML += `
+            <div class="swiper-slide">
+                <div class="video-container"><div id="player-${index}"></div></div>
+                <div class="ui-overlay">
+                    <div class="header-info">
+                        <h4 class="m-0 fw-bold">Nonton<span style="color:#03dac6">Asik</span></h4>
+                        <div class="points-badge"><i class="fas fa-coins"></i> <span class="pts-val">0</span></div>
+                    </div>
+                    <div class="video-info">
+                        <h6>${v.title}</h6>
+                        <p class="small opacity-75">Swipe up untuk video lainnya!</p>
+                    </div>
+                </div>
+                <button class="btn-claim" id="claim-${index}" onclick="claimPoint('${index}')">🎉 KLAIM 10 POIN</button>
+            </div>`;
     });
 
-    function loadUserPoints(uid) {
-        db.ref('users/' + uid).on('value', snap => {
-            document.getElementById('points').innerText = snap.val() ? snap.val().points : 0;
+    // 2. Inisialisasi YouTube API
+    function onYouTubeIframeAPIReady() {
+        shortsList.forEach((v, index) => {
+            players[index] = new YT.Player(`player-${index}`, {
+                videoId: v.id,
+                playerVars: { 'autoplay': 0, 'controls': 0, 'modestbranding': 1, 'loop': 1, 'playlist': v.id },
+                events: { 'onStateChange': (e) => onPlayerStateChange(e, index) }
+            });
         });
+        initSwiper();
     }
 
-    // YouTube API
-    function onYouTubeIframeAPIReady() {
-        player = new YT.Player('ytPlayer', {
-            videoId: shortsVideos[videoIndex].id,
-            playerVars: {
-                'autoplay': 1,
-                'controls': 0,
-                'rel': 0,
-                'showinfo': 0,
-                'modestbranding': 1,
-                'loop': 1,
-                'playlist': shortsVideos[videoIndex].id // Untuk looping
-            },
-            events: {
-                'onReady': onPlayerReady,
-                'onStateChange': onPlayerStateChange
+    // 3. Inisialisasi Swiper (Vertical)
+    let swiper;
+    function initSwiper() {
+        swiper = new Swiper(".mySwiper", {
+            direction: "vertical",
+            on: {
+                slideChange: function () {
+                    stopAllVideos();
+                    let currentIdx = swiper.activeIndex;
+                    if (players[currentIdx]) {
+                        if (!isMuted) players[currentIdx].unMute();
+                        players[currentIdx].playVideo();
+                    }
+                }
             }
         });
     }
 
-    function onPlayerReady(event) {
-        event.target.playVideo();
-        updateMeta();
+    function stopAllVideos() {
+        Object.values(players).forEach(p => p.pauseVideo());
     }
 
-    function onPlayerStateChange(event) {
-        // Jika video selesai (ENDED)
-        if (event.data == YT.PlayerState.ENDED && !hasClaimed) {
-            showClaimBtn();
+    function unmuteAll() {
+        isMuted = false;
+        document.getElementById('mute-notice').style.display = 'none';
+        players[swiper.activeIndex].unMute();
+        players[swiper.activeIndex].playVideo();
+    }
+
+    function onPlayerStateChange(event, index) {
+        if (event.data == YT.PlayerState.ENDED) {
+            document.getElementById(`claim-${index}`).style.display = 'block';
         }
     }
 
-    function showClaimBtn() {
-        const btn = document.getElementById('claimBtn');
-        btn.style.display = 'block';
-        btn.classList.add('animate__bounceIn');
+    // 4. Logika Poin & Auth
+    auth.onAuthStateChanged(user => {
+        if (user) {
+            currentUser = user;
+            loadPoints(user.uid);
+        } else { auth.signInAnonymously(); }
+    });
+
+    function loadPoints(uid) {
+        db.ref('users/' + uid).on('value', snap => {
+            const p = snap.val() ? snap.val().points : 0;
+            document.querySelectorAll('.pts-val').forEach(el => el.innerText = p);
+        });
     }
 
-    function claimReward() {
-        if (currentUser && !hasClaimed) {
-            hasClaimed = true;
+    function claimPoint(index) {
+        if (currentUser) {
             db.ref('users/' + currentUser.uid + '/points').transaction(c => (c || 0) + 10)
             .then(() => {
-                document.getElementById('claimBtn').style.display = 'none';
-                nextVideo(); // Otomatis ke video berikutnya setelah klaim
+                document.getElementById(`claim-${index}`).style.display = 'none';
+                swiper.slideNext(); // Pindah ke video berikutnya otomatis
             });
         }
-    }
-
-    function nextVideo() {
-        hasClaimed = false;
-        videoIndex = (videoIndex + 1) % shortsVideos.length;
-        player.loadVideoById(shortsVideos[videoIndex].id);
-        updateMeta();
-        document.getElementById('claimBtn').style.display = 'none';
-    }
-
-    function updateMeta() {
-        document.getElementById('videoTitle').innerText = shortsVideos[videoIndex].title;
     }
 </script>
 </body>
