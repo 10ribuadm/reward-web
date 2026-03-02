@@ -3,182 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NontonAsik - Video Lucu HD</title>
+    <title>NontonAsik - Shorts Reward</title>
 
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-
+    
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <style>
-        :root {
-            --accent: #03dac6;
-            --bg-dark: #0f172a;
-            --glass: rgba(255, 255, 255, 0.08);
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: var(--bg-dark);
-            color: white;
+        body, html {
             margin: 0; padding: 0;
-            height: 100vh; overflow: hidden;
+            height: 100%; width: 100%;
+            background: #000;
+            font-family: 'Poppins', sans-serif;
+            overflow: hidden;
         }
 
-        .app-container {
-            max-width: 500px;
-            margin: 0 auto;
+        /* Container Video Full Layar */
+        .shorts-container {
+            position: relative;
             height: 100vh;
+            width: 100vw;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #ytPlayer {
+            width: 100vw;
+            height: 100vh;
+            pointer-events: none; /* Mencegah user klik iklan/pause manual agar poin aman */
+        }
+
+        /* Overlay UI */
+        .ui-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, transparent 40%, rgba(0,0,0,0.4) 100%);
+            pointer-events: none;
             display: flex;
             flex-direction: column;
-            background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-            position: relative;
+            justify-content: space-between;
+            padding: 20px;
+            z-index: 10;
         }
 
-        header {
-            padding: 15px 20px;
+        .header-info {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.1);
+            pointer-events: auto;
         }
 
-        .points-box {
-            background: var(--glass);
+        .points-badge {
+            background: rgba(3, 218, 198, 0.2);
+            backdrop-filter: blur(10px);
+            border: 1px solid #03dac6;
             padding: 5px 15px;
-            border-radius: 50px;
-            border: 1px solid var(--accent);
+            border-radius: 20px;
+            color: #03dac6;
             font-weight: 700;
-            color: var(--accent);
         }
 
-        .main-content {
-            flex: 1;
-            overflow-y: auto;
-            padding: 15px;
-            padding-bottom: 100px;
+        .video-meta {
+            margin-bottom: 80px;
+            pointer-events: auto;
         }
 
-        /* Video List Style */
-        .video-item {
-            background: var(--glass);
-            border-radius: 15px;
-            margin-bottom: 15px;
-            overflow: hidden;
-            border: 1px solid rgba(255,255,255,0.05);
-            transition: 0.3s;
-        }
-
-        .video-item img {
-            width: 100%;
-            height: 180px;
-            object-fit: cover;
-        }
-
-        .video-info { padding: 12px; }
-        .video-title { font-size: 0.9rem; font-weight: 600; margin-bottom: 5px; }
-
-        /* Full Screen Player Overlay */
-        #playerOverlay {
-            position: fixed;
-            inset: 0;
-            background: #000;
-            z-index: 3000;
+        /* Floating Claim Button */
+        .btn-claim-shorts {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #03dac6;
+            color: #000;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: 700;
+            box-shadow: 0 0 30px rgba(3, 218, 198, 0.6);
+            z-index: 100;
             display: none;
-            flex-direction: column;
+            pointer-events: auto;
         }
 
-        .close-player {
+        /* Navigation Buttons */
+        .side-nav {
             position: absolute;
-            top: 20px; right: 20px;
-            color: white; font-size: 1.5rem;
-            z-index: 3100;
-        }
-
-        #ytPlayerContainer { flex: 1; width: 100%; }
-
-        .bottom-nav {
-            position: absolute;
-            bottom: 20px; left: 20px; right: 20px;
-            background: rgba(15, 23, 42, 0.95);
-            backdrop-filter: blur(20px);
-            border-radius: 25px;
+            right: 15px;
+            bottom: 120px;
             display: flex;
-            justify-content: space-around;
-            padding: 12px;
-            border: 1px solid rgba(255,255,255,0.1);
+            flex-direction: column;
+            gap: 20px;
+            pointer-events: auto;
         }
 
-        .nav-item { color: #64748b; text-align: center; flex: 1; cursor: pointer; }
-        .nav-item.active { color: var(--accent); }
-        .nav-item i { font-size: 1.3rem; }
-        .nav-item span { display: block; font-size: 0.7rem; }
+        .nav-icon {
+            background: rgba(255,255,255,0.1);
+            width: 50px; height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            backdrop-filter: blur(10px);
+            color: white;
+        }
 
         #loadingOverlay {
-            position: absolute; inset: 0; background: var(--bg-dark);
-            z-index: 4000; display: flex; flex-direction: column;
-            align-items: center; justify-content: center;
+            position: fixed; inset: 0; background: #000;
+            z-index: 9999; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; color: white;
         }
     </style>
 </head>
 <body>
 
-<div class="app-container">
-    <div id="loadingOverlay">
-        <div class="spinner-border text-info mb-3"></div>
-        <p>Menghubungkan ke NontonAsik...</p>
-    </div>
+<div id="loadingOverlay">
+    <div class="spinner-border text-info mb-3"></div>
+    <p>Menyiapkan Konten Lucu...</p>
+</div>
 
-    <div id="playerOverlay">
-        <i class="fas fa-times close-player" onclick="closeVideo()"></i>
-        <div id="ytPlayerContainer"></div>
-        <div class="p-3 text-center">
-            <button id="claimBtn" class="btn btn-info w-100 rounded-pill fw-bold py-3 animate__animated" onclick="claimReward()" style="display:none">
-                🎉 AMBIL 10 POIN SEKARANG!
-            </button>
-        </div>
-    </div>
-
-    <header>
-        <h5 class="m-0 fw-bold">Nonton<span style="color:var(--accent)">Asik</span></h5>
-        <div class="points-box">
-            <i class="fas fa-coins me-1"></i> <span id="points">0</span>
-        </div>
-    </header>
-
-    <div class="main-content">
-        <div id="tab-nonton" class="tab-panel active">
-            <h6 class="mb-3">Pilih Video Lucu HD</h6>
-            <div id="videoList">
-                </div>
-        </div>
-
-        <div id="tab-baca" class="tab-panel" style="display:none">
-            <h6 class="mb-3">Bacaan Ringan</h6>
-            <div class="video-item p-3">
-                <h5>Segera Hadir</h5>
-                <p class="small opacity-50">Konten bacaan sedang disiapkan...</p>
+<div class="shorts-container">
+    <div id="ytPlayer"></div>
+    
+    <div class="ui-overlay">
+        <div class="header-info">
+            <h4 class="m-0 fw-bold">Nonton<span style="color:#03dac6">Asik</span></h4>
+            <div class="points-badge">
+                <i class="fas fa-coins"></i> <span id="points">0</span>
             </div>
         </div>
+
+        <div class="video-meta">
+            <h6 id="videoTitle" class="mb-1">Memuat video...</h6>
+            <p class="small opacity-75">Tonton sampai habis untuk dapat 10 Poin!</p>
+        </div>
     </div>
 
-    <nav class="bottom-nav">
-        <div class="nav-item active" onclick="switchTab('tab-nonton', this)">
-            <i class="fas fa-play-circle"></i><span>Nonton</span>
-        </div>
-        <div class="nav-item" onclick="switchTab('tab-baca', this)">
-            <i class="fas fa-book-open"></i><span>Baca</span>
-        </div>
-    </nav>
+    <button id="claimBtn" class="btn-claim-shorts animate__animated" onclick="claimReward()">
+        🎉 AMBIL POIN!
+    </button>
+
+    <div class="side-nav">
+        <div class="nav-icon" onclick="nextVideo()"><i class="fas fa-step-forward"></i></div>
+        <div class="nav-icon"><i class="fas fa-heart"></i></div>
+        <div class="nav-icon"><i class="fas fa-share"></i></div>
+    </div>
 </div>
 
 <script>
-    // === FIREBASE CONFIG (Sesuai milik Anda) ===
+    // === FIREBASE LOGIC (TIDAK BERUBAH) ===
     const firebaseConfig = {
         apiKey: "AIzaSyD_5ct08uYoMVSualfGPW8Oiq4y7C9SzJc",
         authDomain: "nontonhepi-4d7a9.firebaseapp.com",
@@ -197,22 +177,21 @@
     let player;
     let currentUser = null;
     let hasClaimed = false;
+    let videoIndex = 0;
 
-    // List Video Lucu HD (Bisa Anda pindahkan ke Firebase nanti)
-    const videos = [
-        { id: "JqRKOLM9u8o", title: "Momen Kocak Bikin Ngakak 2025", thumb: "https://img.youtube.com/vi/JqRKOLM9u8o/mqdefault.jpg" },
-        { id: "kXPctLfbiJo", title: "Si Paling Random - Kompilasi HD", thumb: "https://img.youtube.com/vi/kXPctLfbiJo/mqdefault.jpg" },
-        { id: "6sXPAyV_LV8", title: "20 Menit Kucing Lucu HD", thumb: "https://img.youtube.com/vi/6sXPAyV_LV8/mqdefault.jpg" },
-        { id: "NAq-TWX3HOA", title: "Kegabutan Pria Paling Ngakak", thumb: "https://img.youtube.com/vi/NAq-TWX3HOA/mqdefault.jpg" }
+    // Database Video Shorts Lucu (ID YouTube Shorts)
+    const shortsVideos = [
+        { id: "w9k2WhcKl80", title: "Mau ketawa takut dosa 😂" },
+        { id: "BbT3BHpKIvg", title: "Tahan Tawa Warga +62" },
+        { id: "lifSYNqCXo0", title: "Bocah Ngakak Terlucu" },
+        { id: "F7AtzYJPxG8", title: "Hiburan Random Banget" }
     ];
 
-    // Auth Change
     auth.onAuthStateChanged(user => {
         if (user) {
             currentUser = user;
             document.getElementById('loadingOverlay').style.display = 'none';
             loadUserPoints(user.uid);
-            renderVideoList();
         } else {
             auth.signInAnonymously();
         }
@@ -224,66 +203,65 @@
         });
     }
 
-    function renderVideoList() {
-        const list = document.getElementById('videoList');
-        list.innerHTML = '';
-        videos.forEach(v => {
-            list.innerHTML += `
-                <div class="video-item animate__animated animate__fadeInUp" onclick="playVideo('${v.id}')">
-                    <img src="${v.thumb}">
-                    <div class="video-info">
-                        <div class="video-title">${v.title}</div>
-                        <small class="text-info"><i class="fas fa-play me-1"></i> Tonton & Dapat 10 Poin</small>
-                    </div>
-                </div>`;
+    // YouTube API
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('ytPlayer', {
+            videoId: shortsVideos[videoIndex].id,
+            playerVars: {
+                'autoplay': 1,
+                'controls': 0,
+                'rel': 0,
+                'showinfo': 0,
+                'modestbranding': 1,
+                'loop': 1,
+                'playlist': shortsVideos[videoIndex].id // Untuk looping
+            },
+            events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange
+            }
         });
     }
 
-    // YouTube Player Logic
-    function onYouTubeIframeAPIReady() {}
+    function onPlayerReady(event) {
+        event.target.playVideo();
+        updateMeta();
+    }
 
-    function playVideo(videoId) {
-        hasClaimed = false;
-        document.getElementById('claimBtn').style.display = 'none';
-        document.getElementById('playerOverlay').style.display = 'flex';
-        
-        if (player) {
-            player.loadVideoById(videoId);
-        } else {
-            player = new YT.Player('ytPlayerContainer', {
-                height: '100%', width: '100%', videoId: videoId,
-                playerVars: { 'autoplay': 1, 'controls': 1, 'modestbranding': 1 },
-                events: { 'onStateChange': (e) => { if(e.data == YT.PlayerState.ENDED) showClaim(); } }
-            });
+    function onPlayerStateChange(event) {
+        // Jika video selesai (ENDED)
+        if (event.data == YT.PlayerState.ENDED && !hasClaimed) {
+            showClaimBtn();
         }
     }
 
-    function showClaim() {
-        document.getElementById('claimBtn').style.display = 'block';
-        document.getElementById('claimBtn').classList.add('animate__tada');
-    }
-
-    function closeVideo() {
-        if(player) player.stopVideo();
-        document.getElementById('playerOverlay').style.display = 'none';
+    function showClaimBtn() {
+        const btn = document.getElementById('claimBtn');
+        btn.style.display = 'block';
+        btn.classList.add('animate__bounceIn');
     }
 
     function claimReward() {
         if (currentUser && !hasClaimed) {
             hasClaimed = true;
-            const userRef = db.ref('users/' + currentUser.uid + '/points');
-            userRef.transaction(c => (c || 0) + 10).then(() => {
-                alert("Poin Berhasil Ditambahkan!");
-                closeVideo();
+            db.ref('users/' + currentUser.uid + '/points').transaction(c => (c || 0) + 10)
+            .then(() => {
+                document.getElementById('claimBtn').style.display = 'none';
+                nextVideo(); // Otomatis ke video berikutnya setelah klaim
             });
         }
     }
 
-    function switchTab(id, el) {
-        document.querySelectorAll('.tab-panel').forEach(p => p.style.display = 'none');
-        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
-        document.getElementById(id).style.display = 'block';
-        el.classList.add('active');
+    function nextVideo() {
+        hasClaimed = false;
+        videoIndex = (videoIndex + 1) % shortsVideos.length;
+        player.loadVideoById(shortsVideos[videoIndex].id);
+        updateMeta();
+        document.getElementById('claimBtn').style.display = 'none';
+    }
+
+    function updateMeta() {
+        document.getElementById('videoTitle').innerText = shortsVideos[videoIndex].title;
     }
 </script>
 </body>
