@@ -144,9 +144,22 @@
         }
 
         function savePoints(uid, pointsToAdd) {
-            const userRef = db.ref('users/' + uid);
-            userRef.child('points').transaction((currentPoints) => {
-                return (currentPoints || 0) + pointsToAdd;
+            const userRef = db.ref('users/' + uid + '/points');
+            console.log("Memulai transaksi pada ref:", userRef.toString());
+
+            userRef.transaction((currentPoints) => {
+                const newPoints = (currentPoints || 0) + pointsToAdd;
+                console.log("Di dalam transaksi. Poin saat ini:", currentPoints, "Poin baru:", newPoints);
+                return newPoints;
+            }, (error, committed, snapshot) => {
+                if (error) {
+                    console.error('Transaksi GAGAL:', error);
+                    alert('Gagal menyimpan poin. Terjadi kesalahan: ' + error);
+                } else if (!committed) {
+                    console.warn('Transaksi tidak berhasil di-commit. Mungkin ada pembaruan data dari klien lain.');
+                } else {
+                    console.log('Transaksi BERHASIL! Poin sekarang:', snapshot.val());
+                }
             });
         }
 
@@ -185,11 +198,16 @@
 
         // Fungsi untuk klaim hadiah
         function claimReward() {
+            console.log("claimReward dipanggil. currentUser:", currentUser, "hasClaimed:", hasClaimed);
             if (currentUser && !hasClaimed) {
                 hasClaimed = true; // Tandai sudah klaim
+                console.log("Memanggil savePoints untuk user:", currentUser.uid);
                 savePoints(currentUser.uid, 10);
-                alert("Selamat! 10 Poin berhasil ditambahkan.");
+                alert("Selamat! 10 Poin telah ditambahkan.");
                 claimBtn.style.display = 'none'; // Sembunyikan tombol lagi
+            } else {
+                console.error("Tidak bisa klaim. Pengguna belum login atau sudah pernah klaim.");
+                if (!currentUser) alert("Error: Pengguna tidak ditemukan. Silakan refresh halaman.");
             }
         }
     </script>
