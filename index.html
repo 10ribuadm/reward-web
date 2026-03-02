@@ -16,61 +16,80 @@
         :root {
             --accent: #00f2fe;
             --premium-red: #fe2c55;
+            --dark-bg: #0a0a0a;
         }
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; font-family: 'Segoe UI', Roboto, sans-serif; overflow: hidden; color: white; }
         
+        body, html { 
+            margin: 0; padding: 0; height: 100%; width: 100%; 
+            background: var(--dark-bg); font-family: 'Segoe UI', Roboto, sans-serif; 
+            overflow: hidden; color: white; 
+        }
+        
+        /* Swiper Container */
         .swiper { width: 100%; height: 100vh; }
         .swiper-slide { position: relative; background: #000; overflow: hidden; }
 
-        /* Video MP4 Full Screen */
+        /* Video MP4 Styling */
         video {
-            width: 100%; height: 100%; object-fit: cover; /* Menjamin Full Layar HP */
+            width: 100%; height: 100%; object-fit: cover;
             position: absolute; top: 0; left: 0;
         }
 
-        /* UI Minimalis & Keren */
+        /* UI Overlay */
         .overlay-ui {
             position: absolute; inset: 0;
-            background: linear-gradient(0deg, rgba(0,0,0,0.4) 0%, transparent 30%, rgba(0,0,0,0.3) 100%);
+            background: linear-gradient(0deg, rgba(0,0,0,0.6) 0%, transparent 40%, rgba(0,0,0,0.3) 100%);
             z-index: 10; display: flex; flex-direction: column; justify-content: space-between;
             padding: 25px; pointer-events: none;
         }
 
-        .header { display: flex; justify-content: space-between; align-items: center; pointer-events: auto; }
-        .badge-point { background: rgba(0,0,0,0.5); border: 1px solid var(--accent); padding: 5px 15px; border-radius: 50px; color: var(--accent); font-weight: bold; }
+        .header { display: flex; justify-content: space-between; align-items: center; pointer-events: auto; margin-top: 10px; }
+        .badge-point { 
+            background: rgba(0,0,0,0.6); border: 1px solid var(--accent); 
+            padding: 8px 15px; border-radius: 50px; color: var(--accent); 
+            font-weight: bold; backdrop-filter: blur(5px);
+        }
 
-        .info-bottom { margin-bottom: 20px; pointer-events: auto; }
-        .info-bottom h5 { margin: 0; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.5); }
-        .info-bottom p { font-size: 0.9rem; opacity: 0.8; margin: 5px 0 0; }
+        .info-bottom { margin-bottom: 30px; pointer-events: auto; }
+        .info-bottom h5 { margin: 0; font-size: 1.2rem; font-weight: 700; text-shadow: 0 2px 4px rgba(0,0,0,0.8); }
+        .info-bottom p { font-size: 0.9rem; opacity: 0.9; margin: 8px 0 0; }
 
-        /* Tombol Klaim Mewah */
+        /* Tombol Klaim */
         .btn-claim {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             background: linear-gradient(45deg, var(--accent), #4facfe); color: #000;
-            border: none; padding: 18px 35px; border-radius: 50px; font-weight: 800;
+            border: none; padding: 18px 30px; border-radius: 50px; font-weight: 800;
             z-index: 100; display: none; pointer-events: auto;
-            box-shadow: 0 10px 30px rgba(0, 242, 254, 0.4);
+            box-shadow: 0 10px 30px rgba(0, 242, 254, 0.5);
+            cursor: pointer; transition: transform 0.2s;
         }
+        .btn-claim:active { transform: translate(-50%, -50%) scale(0.9); }
 
-        /* Layar Awal (Unlock Audio) */
+        /* Gatekeeper (Layar Start) */
         #gatekeeper {
-            position: fixed; inset: 0; background: #000; z-index: 9999;
+            position: fixed; inset: 0; background: var(--dark-bg); z-index: 9999;
             display: flex; flex-direction: column; align-items: center; justify-content: center;
+            text-align: center;
         }
         .play-ring {
-            width: 80px; height: 80px; border: 3px solid var(--accent);
+            width: 90px; height: 90px; border: 3px solid var(--accent);
             border-radius: 50%; display: flex; align-items: center; justify-content: center;
-            cursor: pointer; animation: pulse 1.5s infinite;
+            cursor: pointer; position: relative;
         }
-        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.3); opacity: 0; } }
+        .play-ring::after {
+            content: ""; position: absolute; width: 100%; height: 100%;
+            border: 2px solid var(--accent); border-radius: 50%;
+            animation: pulse 1.8s infinite;
+        }
+        @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
     </style>
 </head>
 <body>
 
 <div id="gatekeeper" onclick="unlockApp()">
-    <div class="play-ring"><i class="fas fa-play fa-2x" style="color:var(--accent)"></i></div>
-    <h4 class="mt-4">NontonAsik Premium</h4>
-    <p class="small opacity-50">Ketuk untuk Memulai</p>
+    <div class="play-ring"><i class="fas fa-play fa-2x" style="color:var(--accent); margin-left: 5px;"></i></div>
+    <h3 style="margin-top: 25px; letter-spacing: 1px;">NontonAsik Premium</h3>
+    <p style="opacity: 0.6;">Ketuk untuk mulai menonton & hasilkan poin</p>
 </div>
 
 <div class="swiper mySwiper">
@@ -81,7 +100,7 @@
 <script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
 
 <script>
-    // === CONFIG FIREBASE ASRUL ===
+    // === CONFIG FIREBASE ===
     const firebaseConfig = {
         apiKey: "AIzaSyD_5ct08uYoMVSualfGPW8Oiq4y7C9SzJc",
         authDomain: "nontonhepi-4d7a9.firebaseapp.com",
@@ -96,35 +115,33 @@
     const auth = firebase.auth();
     const db = firebase.database();
 
-    // List 10 Video Creative Commons (MP4 Direct Link)
+    // Link Video Menggunakan URL RAW GitHub
+    const videoUrl = "https://raw.githubusercontent.com/10ribuadm/reward-web/main/video/tes.mp4";
     const videos = [
-        { url: "https://github.com/10ribuadm/reward-web/blob/main/video/tes.mp4", title: "Pemandangan Estetik #1" },
-        { url: "https://github.com/10ribuadm/reward-web/blob/main/video/tes.mp4", title: "Momen Santai #2" },
-        { url: "https://github.com/10ribuadm/reward-web/blob/main/video/tes.mp4", title: "Gaya Hidup Modern #3" },
-        { url: "https://github.com/10ribuadm/reward-web/blob/main/video/tes.mp4", title: "Teknologi Masa Depan #4" },
-        { url: "https://github.com/10ribuadm/reward-web/blob/main/video/tes.mp4", title: "Wisata Alam #5" },
-        { url: "https://github.com/10ribuadm/reward-web/blob/main/video/tes.mp4", title: "Kopi & Inspirasi #6" },
-        { url: "https://github.com/10ribuadm/reward-web/blob/main/video/tes.mp4", title: "Petualangan Seru #7" },
-        { url: "https://github.com/10ribuadm/reward-web/blob/main/video/tes.mp4", title: "Hobi & Kreativitas #8" },
-        { url: "https://github.com/10ribuadm/reward-web/blob/main/video/tes.mp4", title: "Kota Malam Hari #9" },
-        { url: "https://github.com/10ribuadm/reward-web/blob/main/video/tes.mp4", title: "Ekspresi Bahagia #10" }
+        { url: videoUrl, title: "Pemandangan Estetik #1" },
+        { url: videoUrl, title: "Momen Santai #2" },
+        { url: videoUrl, title: "Gaya Hidup Modern #3" },
+        { url: videoUrl, title: "Teknologi Masa Depan #4" },
+        { url: videoUrl, title: "Wisata Alam #5" }
     ];
 
     const wrapper = document.getElementById('video-content');
+    
+    // Render Slides
     videos.forEach((v, i) => {
         wrapper.innerHTML += `
             <div class="swiper-slide">
-                <video id="vid-${i}" playsinline loop>
+                <video id="vid-${i}" playsinline loop muted>
                     <source src="${v.url}" type="video/mp4">
                 </video>
                 <div class="overlay-ui">
                     <div class="header">
                         <h4 class="m-0 fw-bold">Nonton<span style="color:var(--accent)">Asik</span></h4>
-                        <div class="badge-point"><i class="fas fa-wallet me-1"></i> <span class="pts-val">0</span></div>
+                        <div class="badge-point"><i class="fas fa-gem me-1"></i> <span class="pts-val">0</span></div>
                     </div>
                     <div class="info-bottom">
                         <h5>${v.title}</h5>
-                        <p>Tonton 15 detik untuk dapatkan hadiah!</p>
+                        <p><i class="fas fa-clock me-1"></i> Tonton 10 detik untuk klaim hadiah!</p>
                     </div>
                 </div>
                 <button class="btn-claim" id="claim-${i}" onclick="claimPoin('${i}')">💎 AMBIL 10 POIN</button>
@@ -132,7 +149,10 @@
     });
 
     let swiper;
+    let claimTimers = {};
+
     function unlockApp() {
+        document.getElementById('gatekeeper').style.fadeOut = "fast";
         document.getElementById('gatekeeper').style.display = 'none';
         initSwiper();
         playActiveVideo(0);
@@ -141,6 +161,7 @@
     function initSwiper() {
         swiper = new Swiper(".mySwiper", {
             direction: "vertical",
+            mousewheel: true,
             on: {
                 slideChange: function() {
                     stopAllVideos();
@@ -153,11 +174,14 @@
     function playActiveVideo(index) {
         const v = document.getElementById(`vid-${index}`);
         if(v) {
-            v.play();
-            // Cek durasi tonton agar tidak bisa skip
-            setTimeout(() => {
+            v.muted = false; // Unmute setelah interaksi user
+            v.play().catch(e => console.log("Autoplay dicegah: ", e));
+            
+            // Logika Timer Hadiah
+            clearTimeout(claimTimers[index]);
+            claimTimers[index] = setTimeout(() => {
                 document.getElementById(`claim-${index}`).style.display = 'block';
-            }, 10000); // Muncul setelah 10 detik tonton
+            }, 10000); // Muncul setelah 10 detik
         }
     }
 
@@ -169,7 +193,7 @@
         document.querySelectorAll('.btn-claim').forEach(b => b.style.display = 'none');
     }
 
-    // === FIREBASE LOGIC ===
+    // === FIREBASE INTEGRATION ===
     auth.onAuthStateChanged(user => {
         if (user) { loadPoints(user.uid); }
         else { auth.signInAnonymously(); }
@@ -188,6 +212,7 @@
             db.ref('users/' + user.uid + '/points').transaction(c => (c || 0) + 10)
             .then(() => {
                 document.getElementById(`claim-${index}`).style.display = 'none';
+                alert("Selamat! +10 Poin berhasil masuk.");
                 swiper.slideNext();
             });
         }
