@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NontonHepi - Reward System</title>
+    <style>
+        /* Desain Modern & Mobile Friendly */
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 90%;
+            max-width: 400px;
+            text-align: center;
+        }
+        h1 { color: #6200ee; margin-bottom: 10px; font-size: 1.5rem; }
+        .video-box {
+            width: 100%;
+            border-radius: 10px;
+            overflow: hidden;
+            background: #000;
+            margin-bottom: 20px;
+        }
+        video { width: 100%; display: block; }
+        .stats {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            padding: 10px;
+            background: #e8eaf6;
+            border-radius: 8px;
+        }
+        #points { font-weight: bold; color: #2e7d32; }
+        .btn-claim {
+            background-color: #6200ee;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            display: none; /* Tombol disembunyikan sampai video selesai */
+        }
+        .btn-claim:hover { background-color: #3700b3; }
+        .instruction { font-size: 0.9rem; color: #666; margin-bottom: 15px; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>NontonHepi</h1>
+        <p class="instruction">Tonton video sampai habis tanpa mempercepat untuk mendapatkan poin!</p>
+
+        <div class="video-box">
+            <!-- Ganti URL source di bawah dengan URL video MP4 Anda sendiri -->
+            <video id="rewardVideo" controls controlsList="nodownload noremoteplayback">
+                <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
+                Browser Anda tidak mendukung video.
+            </video>
+        </div>
+
+        <div class="stats">
+            Poin Anda: <span id="points">0</span>
+        </div>
+
+        <button id="claimBtn" class="btn-claim" onclick="claimReward()">Ambil 10 Poin!</button>
+    </div>
+
+    <script>
+        const video = document.getElementById('rewardVideo');
+        const pointsDisplay = document.getElementById('points');
+        const claimBtn = document.getElementById('claimBtn');
+        let points = 0;
+
+        // KEAMANAN: Mencegah user mempercepat video (disable seeking forward)
+        let lastTime = 0;
+        video.addEventListener('timeupdate', () => {
+            if (!video.seeking) {
+                if (video.currentTime > lastTime + 2) {
+                    video.currentTime = lastTime; // Kembalikan ke posisi terakhir jika mencoba loncat
+                } else {
+                    lastTime = video.currentTime;
+                }
+            }
+        });
+
+        video.addEventListener('seeking', () => {
+            if (video.currentTime > lastTime) {
+                video.currentTime = lastTime;
+            }
+        });
+
+        // DETEKSI VIDEO SELESAI
+        video.onended = function() {
+            claimBtn.style.display = 'inline-block'; // Munculkan tombol klaim
+            alert("Video selesai! Silakan ambil poin Anda.");
+        };
+
+        // FUNGSI KLAIM POIN
+        function claimReward() {
+            points += 10;
+            pointsDisplay.innerText = points;
+            claimBtn.style.display = 'none'; // Sembunyikan lagi tombol setelah diklik
+            alert("Selamat! 10 Poin telah ditambahkan.");
+            
+            // Catatan: Di sini nantinya Anda bisa memanggil fungsi Firebase
+            // saveToFirebase(points);
+        }
+    </script>
+</body>
+</html>
