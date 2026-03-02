@@ -3,119 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NontonAsik Pro - TikTok Style</title>
-
-    <!-- Google Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+    <title>NontonHepi - Modern Shorts</title>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Firebase SDK -->
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <style>
-        :root { --tiktok-red: #fe2c55; --tiktok-cyan: #25f4ee; }
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; font-family: 'Poppins', sans-serif; overflow: hidden; color: white; }
-        
-        /* Overlay Awal Premium */
+        :root { --primary: #6200ee; --accent: #03dac6; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; font-family: 'Inter', sans-serif; overflow: hidden; color: white; }
+
+        /* Overlay Awal */
         #start-overlay {
-            position: fixed; inset: 0; background: radial-gradient(circle, #222 0%, #000 100%); z-index: 9999;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; transition: 0.5s;
+            position: fixed; inset: 0; background: #121212; z-index: 1000;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
         }
-        .logo-animation { font-size: 3rem; font-weight: 800; margin-bottom: 20px; text-shadow: 2px 2px var(--tiktok-cyan), -2px -2px var(--tiktok-red); }
         .btn-start {
-            background: var(--tiktok-red); color: white; border: none; padding: 18px 50px;
-            border-radius: 50px; font-size: 1.1rem; font-weight: bold; cursor: pointer;
-            box-shadow: 0 10px 30px rgba(254, 44, 85, 0.4); transition: 0.3s;
-        }
-        .btn-start:active { transform: scale(0.95); }
-
-        .swiper { width: 100%; height: 100vh; display: none; }
-        .swiper-slide { position: relative; background: #000; }
-
-        .video-container { width: 100%; height: 100%; display: flex; align-items: center; overflow: hidden; }
-        .video-container iframe { width: 100vw; height: 100vh; border: none; transform: scale(1.5); pointer-events: none; }
-
-        /* UI TikTok Layout */
-        .tiktok-ui {
-            position: absolute; inset: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.8) 0%, transparent 30%, transparent 70%, rgba(0,0,0,0.3) 100%);
-            z-index: 10; pointer-events: none;
-            display: flex; flex-direction: column; justify-content: flex-end; padding: 15px;
+            background: var(--primary); color: white; border: none; padding: 18px 45px;
+            border-radius: 12px; font-size: 1.1rem; font-weight: 800; cursor: pointer;
+            box-shadow: 0 8px 24px rgba(98, 0, 238, 0.4);
         }
 
-        .video-info { margin-bottom: 30px; pointer-events: auto; }
-        .username { font-weight: 700; font-size: 1.1rem; margin-bottom: 8px; display: flex; align-items: center; gap: 5px; }
-        .username i { color: #20d5ec; font-size: 0.8rem; }
-        .description { font-size: 0.95rem; line-height: 1.4; opacity: 0.95; max-width: 80%; }
-        
-        /* Sidebar Actions */
-        .side-bar {
-            position: absolute; right: 12px; bottom: 100px;
-            display: flex; flex-direction: column; align-items: center; gap: 18px; pointer-events: auto;
-        }
-        .profile-pic { 
-            width: 50px; height: 50px; border-radius: 50%; border: 2px solid #fff; 
-            background: #444; margin-bottom: 10px; position: relative;
-        }
-        .profile-pic::after {
-            content: '+'; position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
-            background: var(--tiktok-red); width: 20px; height: 20px; border-radius: 50%;
-            display: flex; align-items: center; justify-content: center; font-size: 14px;
-        }
-        .action-item { text-align: center; }
-        .action-item i { font-size: 2rem; text-shadow: 0 2px 10px rgba(0,0,0,0.5); }
-        .action-item span { font-size: 0.75rem; font-weight: 600; display: block; margin-top: 4px; }
-        .fa-heart.active { color: var(--tiktok-red); animation: beat 0.3s ease; }
+        /* Container Utama */
+        #app-container { display: none; width: 100%; height: 100%; }
+        .video-wrapper { position: relative; width: 100%; height: 100vh; display: flex; align-items: center; justify-content: center; background: #000; }
+        video { width: 100%; height: 100%; object-fit: cover; }
 
-        /* Custom Progress Bar */
-        .progress-container {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 3px;
-            background: rgba(255,255,255,0.2); z-index: 100;
+        /* Play/Pause Icon Animation */
+        .play-status-icon {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 5rem; opacity: 0; pointer-events: none; transition: 0.3s;
         }
-        .progress-bar { height: 100%; background: #fff; width: 0%; transition: width 0.2s linear; }
+        .show-icon { opacity: 0.8; transform: translate(-50%, -50%) scale(1.2); }
 
-        /* Floating Claim Button */
+        /* UI Overlay */
+        .ui-overlay {
+            position: absolute; bottom: 0; left: 0; width: 100%; padding: 30px 20px 50px;
+            background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, transparent 100%);
+            pointer-events: none;
+        }
+        .user-info h3 { margin: 0 0 8px; font-size: 1.2rem; color: var(--accent); }
+        .user-info p { margin: 0; font-size: 0.95rem; opacity: 0.8; line-height: 1.5; }
+
+        /* Dompet Poin */
+        .wallet-card {
+            position: absolute; top: 50px; right: 20px;
+            background: rgba(255,255,255,0.15); backdrop-filter: blur(10px);
+            padding: 8px 15px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.2);
+            display: flex; align-items: center; gap: 8px; font-weight: 600;
+        }
+
+        /* Progress Bar */
+        .progress-bar {
+            position: absolute; bottom: 0; left: 0; height: 4px;
+            background: var(--accent); width: 0%; transition: width 0.1s linear;
+        }
+
+        /* Tombol Klaim */
         .btn-claim {
-            position: absolute; top: 45%; left: 50%; transform: translate(-50%, -50%);
-            background: linear-gradient(45deg, #00f2ea, #ff0050); color: white;
-            border: none; padding: 15px 30px; border-radius: 50px; font-weight: 800;
-            box-shadow: 0 0 30px rgba(255,255,255,0.4); z-index: 1000;
-            display: none; pointer-events: auto; animation: pulse 1.5s infinite;
-        }
-
-        /* Heart Animation on Double Tap */
-        .heart-pop {
-            position: absolute; color: var(--tiktok-red); font-size: 5rem;
-            z-index: 1000; pointer-events: none; animation: popHeart 0.8s ease-out forwards;
-        }
-
-        @keyframes beat { 0% {transform:scale(1)} 50% {transform:scale(1.3)} 100% {transform:scale(1)} }
-        @keyframes pulse { 0% {transform:translate(-50%, -50%) scale(1)} 50% {transform:translate(-50%, -50%) scale(1.1)} 100% {transform:translate(-50%, -50%) scale(1)} }
-        @keyframes popHeart {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
-            30% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
-            100% { opacity: 0; transform: translate(-50%, -80%) scale(1.5); }
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: var(--accent); color: #000; border: none; padding: 20px 40px;
+            border-radius: 50px; font-weight: 800; font-size: 1rem; cursor: pointer;
+            display: none; pointer-events: auto; box-shadow: 0 0 30px rgba(3, 218, 198, 0.5);
+            z-index: 100;
         }
     </style>
 </head>
 <body>
 
 <div id="start-overlay">
-    <div class="logo-animation">NontonAsik</div>
-    <button class="btn-start" onclick="startApp()">MULAI MENIKMATI</button>
-    <p style="margin-top: 20px; font-size: 0.85rem; opacity: 0.7;">Volume Otomatis & Layar Penuh</p>
+    <h1 style="font-size: 2.5rem; margin-bottom: 30px;">Nonton<span style="color:var(--accent)">Hepi</span></h1>
+    <button class="btn-start" onclick="initApp()">MASUK APLIKASI</button>
 </div>
 
-<div class="swiper mySwiper">
-    <div class="swiper-wrapper" id="video-wrapper"></div>
-</div>
+<div id="app-container">
+    <div class="video-wrapper" onclick="togglePlay()">
+        <video id="mainVideo" playsinline>
+            <source id="videoSource" src="" type="video/mp4">
+        </video>
+        <i id="playIcon" class="fas fa-play play-status-icon"></i>
+        
+        <div class="wallet-card">
+            <i class="fas fa-coins" style="color: gold;"></i>
+            <span id="pts-val">0</span> Poin
+        </div>
 
-<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
-<script src="https://www.youtube.com/iframe_api"></script>
+        <button id="claimBtn" class="btn-claim" onclick="claimReward()">🎁 KLAIM 10 POIN</button>
+
+        <div class="ui-overlay">
+            <div class="user-info">
+                <h3 id="videoTitle">@NontonHepi_User</h3>
+                <p id="videoDesc">Menonton video seru dan dapatkan poin setiap hari!</p>
+            </div>
+        </div>
+        <div class="progress-bar" id="progressBar"></div>
+    </div>
+</div>
 
 <script>
+    // === KONFIGURASI FIREBASE ANDA ===
     const firebaseConfig = {
         apiKey: "AIzaSyD_5ct08uYoMVSualfGPW8Oiq4y7C9SzJc",
         authDomain: "nontonhepi-4d7a9.firebaseapp.com",
@@ -126,147 +118,84 @@
         appId: "1:413442384337:web:af92bdc26bc0adb32440f0"
     };
     firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
     const db = firebase.database();
+    const auth = firebase.auth();
 
-    let currentUser = null;
-    let players = {};
-    let progressIntervals = {};
-    let swiper;
-
-    const videoData = [
-        { id: "w9k2WhcKl80", user: "@lucu_banget", desc: "Ngakak parah momen ini! 😂 #lucu #ngakak", likes: "125K" },
-        { id: "FETd9b-pxks", user: "@warga_62", desc: "Cuma ada di Indonesia wkwk 🇮🇩 #indonesia", likes: "89K" },
-        { id: "lifSYNqCXo0", user: "@bocil_kocak", desc: "Tahan tawa ya guys! 🤣 #bocil", likes: "210K" },
-        { id: "F7AtzYJPxG8", user: "@hiburan_malam", desc: "Hiburan receh malam ini ✨ #receh", likes: "56K" }
+    // === DATA VIDEO (MP4 LANGSUNG - LEBIH RINGAN) ===
+    const playlist = [
+        { url: "https://assets.mixkit.co/videos/preview/mixkit-girl-in-neon-light-32734-large.mp4", title: "@Creative_Mind", desc: "Seni cahaya neon yang luar biasa! ✨" },
+        { url: "https://assets.mixkit.co/videos/preview/mixkit-tree-with-yellow-leaves-low-angle-shot-4606-large.mp4", title: "@Nature_Vibes", desc: "Keindahan musim gugur yang menenangkan. 🍂" },
+        { url: "https://assets.mixkit.co/videos/preview/mixkit-curvy-road-in-the-mountains-4601-large.mp4", title: "@Travel_Addict", desc: "Perjalanan tak terlupakan di pegunungan. 🏔️" }
     ];
 
-    function startApp() {
-        document.getElementById('start-overlay').style.opacity = '0';
-        setTimeout(() => {
-            document.getElementById('start-overlay').style.display = 'none';
-            document.querySelector('.mySwiper').style.display = 'block';
-            if (players[0]) {
-                players[0].unMute();
-                players[0].playVideo();
-                startTracking(0);
-            }
-        }, 500);
+    let currentIdx = 0;
+    const video = document.getElementById('mainVideo');
+    const playIcon = document.getElementById('playIcon');
+    const progressBar = document.getElementById('progressBar');
+    const claimBtn = document.getElementById('claimBtn');
+    let userId = null;
+
+    function initApp() {
+        document.getElementById('start-overlay').style.display = 'none';
+        document.getElementById('app-container').style.display = 'block';
+        loadVideo(0);
     }
 
-    const wrapper = document.getElementById('video-wrapper');
-    videoData.forEach((v, i) => {
-        wrapper.innerHTML += `
-            <div class="swiper-slide" ondblclick="handleDoubleTap(event, ${i})">
-                <div class="video-container"><div id="player-${i}"></div></div>
-                <button class="btn-claim" id="claim-${i}" onclick="claimPoint('${i}')">✨ KLAIM 10 POIN ✨</button>
-                
-                <div class="tiktok-ui">
-                    <div class="side-bar">
-                        <div class="profile-pic"></div>
-                        <div class="action-item" onclick="likeVideo(${i})">
-                            <i class="fas fa-heart" id="like-icon-${i}"></i>
-                            <span>${v.likes}</span>
-                        </div>
-                        <div class="action-item"><i class="fas fa-comment-dots"></i><span>${Math.floor(Math.random()*999)}</span></div>
-                        <div class="action-item"><i class="fas fa-share"></i><span>Share</span></div>
-                    </div>
-                    <div class="video-info">
-                        <div class="username">${v.user} <i class="fas fa-check-circle"></i></div>
-                        <div class="description">${v.desc}</div>
-                        <div style="color:var(--tiktok-cyan); font-weight:bold; margin-top:10px; font-size:0.9rem">
-                            <i class="fas fa-wallet"></i> Dompet: <span class="pts-val">0</span> Poin
-                        </div>
-                    </div>
-                </div>
-                <div class="progress-container"><div class="progress-bar" id="progress-${i}"></div></div>
-            </div>`;
-    });
-
-    function onYouTubeIframeAPIReady() {
-        videoData.forEach((v, i) => {
-            players[i] = new YT.Player(`player-${i}`, {
-                videoId: v.id,
-                playerVars: { 'autoplay': 0, 'controls': 0, 'modestbranding': 1, 'rel': 0, 'iv_load_policy': 3, 'showinfo': 0 },
-                events: { 'onStateChange': (e) => onPlayerStateChange(e, i) }
-            });
-        });
-        initSwiper();
+    function loadVideo(index) {
+        currentIdx = index;
+        const data = playlist[index];
+        document.getElementById('videoSource').src = data.url;
+        document.getElementById('videoTitle').innerText = data.title;
+        document.getElementById('videoDesc').innerText = data.desc;
+        claimBtn.style.display = 'none';
+        video.load();
+        video.play();
     }
 
-    function onPlayerStateChange(event, index) {
-        if (event.data == YT.PlayerState.ENDED) {
-            document.getElementById(`claim-${index}`).style.display = 'block';
+    function togglePlay() {
+        if (video.paused) {
+            video.play();
+            showPlayIcon('fa-play', false);
+        } else {
+            video.pause();
+            showPlayIcon('fa-pause', true);
         }
     }
 
-    function startTracking(index) {
-        clearInterval(progressIntervals[index]);
-        progressIntervals[index] = setInterval(() => {
-            if (players[index] && players[index].getCurrentTime) {
-                const current = players[index].getCurrentTime();
-                const total = players[index].getDuration();
-                const pct = (current / total) * 100;
-                document.getElementById(`progress-${index}`).style.width = pct + "%";
-            }
-        }, 500);
+    function showPlayIcon(iconClass, keepShowing) {
+        playIcon.className = `fas ${iconClass} play-status-icon show-icon`;
+        if (!keepShowing) {
+            setTimeout(() => playIcon.classList.remove('show-icon'), 500);
+        }
     }
 
-    function initSwiper() {
-        swiper = new Swiper(".mySwiper", {
-            direction: "vertical",
-            mousewheel: true,
-            on: {
-                slideChange: function () {
-                    Object.keys(players).forEach(key => {
-                        players[key].pauseVideo();
-                        clearInterval(progressIntervals[key]);
-                    });
-                    let active = swiper.activeIndex;
-                    if (players[active]) {
-                        players[active].unMute();
-                        players[active].playVideo();
-                        startTracking(active);
-                    }
-                }
-            }
-        });
-    }
+    // Tracking Progress
+    video.ontimeupdate = () => {
+        const pct = (video.currentTime / video.duration) * 100;
+        progressBar.style.width = pct + "%";
+    };
 
-    // Double Tap Heart Animation
-    function handleDoubleTap(e, i) {
-        const heart = document.createElement('i');
-        heart.className = 'fas fa-heart heart-pop';
-        heart.style.left = e.clientX + 'px';
-        heart.style.top = e.clientY + 'px';
-        document.body.appendChild(heart);
-        setTimeout(() => heart.remove(), 800);
-        likeVideo(i);
-    }
+    video.onended = () => {
+        claimBtn.style.display = 'block';
+    };
 
-    function likeVideo(i) {
-        document.getElementById(`like-icon-${i}`).classList.add('active');
-    }
-
+    // Firebase Logic
     auth.onAuthStateChanged(user => {
-        if (user) { currentUser = user; loadPoints(user.uid); }
-        else { auth.signInAnonymously(); }
+        if (user) { 
+            userId = user.uid;
+            db.ref('users/' + userId + '/points').on('value', snap => {
+                document.getElementById('pts-val').innerText = snap.val() || 0;
+            });
+        } else { auth.signInAnonymously(); }
     });
 
-    function loadPoints(uid) {
-        db.ref('users/' + uid).on('value', snap => {
-            const p = snap.val() ? snap.val().points : 0;
-            document.querySelectorAll('.pts-val').forEach(el => el.innerText = p);
-        });
-    }
-
-    function claimPoint(index) {
-        if (currentUser) {
-            db.ref('users/' + currentUser.uid + '/points').transaction(c => (c || 0) + 10)
+    function claimReward() {
+        if (userId) {
+            db.ref('users/' + userId + '/points').transaction(c => (c || 0) + 10)
             .then(() => {
-                document.getElementById(`claim-${index}`).style.display = 'none';
-                alert("🎉 +10 Poin Berhasil Ditambahkan!");
-                swiper.slideNext();
+                alert("🎉 +10 Poin Berhasil!");
+                let next = (currentIdx + 1) % playlist.length;
+                loadVideo(next);
             });
         }
     }
