@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>NontonHepi - Reward System</title>
+    <!-- Firebase SDK (Compat version untuk kemudahan di single file) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore-compat.js"></script>
+
     <style>
         /* Desain Modern & Mobile Friendly */
         body {
@@ -43,7 +48,8 @@
             border-radius: 8px;
         }
         #points { font-weight: bold; color: #2e7d32; }
-        .btn-claim {
+        #user-info { font-size: 0.8rem; color: #666; margin-bottom: 10px; }
+        .btn-claim, .btn-login {
             background-color: #6200ee;
             color: white;
             border: none;
@@ -52,8 +58,9 @@
             font-weight: bold;
             cursor: pointer;
             transition: 0.3s;
-            display: none; /* Tombol disembunyikan sampai video selesai */
         }
+        .btn-claim { display: none; } /* Muncul setelah video selesai */
+        .btn-login { background-color: #03dac6; color: #000; margin-bottom: 10px; }
         .btn-claim:hover { background-color: #3700b3; }
         .instruction { font-size: 0.9rem; color: #666; margin-bottom: 15px; }
     </style>
@@ -62,10 +69,13 @@
 
     <div class="container">
         <h1>NontonHepi</h1>
+        <div id="user-info">Memuat status pengguna...</div>
+
+        <button id="loginBtn" class="btn-login" onclick="loginAnonymously()">Masuk untuk Simpan Poin</button>
+
         <p class="instruction">Tonton video sampai habis tanpa mempercepat untuk mendapatkan poin!</p>
 
         <div class="video-box">
-            <!-- Ganti URL source di bawah dengan URL video MP4 Anda sendiri -->
             <video id="rewardVideo" controls controlsList="nodownload noremoteplayback">
                 <source src="https://www.w3schools.com/html/mov_bbb.mp4" type="video/mp4">
                 Browser Anda tidak mendukung video.
@@ -80,17 +90,87 @@
     </div>
 
     <script>
+        // === CONFIGURASI FIREBASE ===
+        // GANTI dengan config dari Firebase Console Anda!
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+
         const video = document.getElementById('rewardVideo');
         const pointsDisplay = document.getElementById('points');
         const claimBtn = document.getElementById('claimBtn');
-        let points = 0;
+        const loginBtn = document.getElementById('loginBtn');
+        const userInfo = document.getElementById('user-info');
 
-        // KEAMANAN: Mencegah user mempercepat video (disable seeking forward)
+        let currentPoints = 0;
+        let currentUser = null;
+
+        // --- AUTHENTICATION LOGIC ---
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+                userInfo.innerText = "Logged in as: " + (user.isAnonymous ? "Guest User" : user.email);
+                loginBtn.style.display = 'none';
+                loadUserPoints(user.uid);
+            } else {
+                userInfo.innerText = "Anda belum masuk. Poin tidak akan tersimpan.";
+                loginBtn.style.display = 'block';
+            }
+        });
+
+        function loginAnonymously() {
+            auth.signInAnonymously().catch(error => {
+                alert("Gagal login: " + error.message);
+            });
+        }
+
+        // --- FIRESTORE LOGIC ---
+        function loadUserPoints(uid) {
+            db.collection("users").doc(uid).get().then((doc) => {
+                if (doc.exists) {
+                    currentPoints = doc.data().points || 0;
+                    pointsDisplay.innerText = currentPoints;
+                } else {
+                    // Create new user record
+                    db.collection("users").doc(uid).set({ points: 0 });
+                }
+            });
+        }
+
+        function savePointsToFirebase(newPoints) {
+            if (currentUser) {
+                db.collection("users").doc(currentUser.uid).update({
+                    points: firebase.firestore.FieldValue.increment(newPoints)
+                }).then(() => {
+                    console.log("Poin berhasil diperbarui di cloud!");
+                    currentPoints += newPoints;
+                    pointsDisplay.innerText = currentPoints;
+                }).catch(err => {
+                    console.error("Gagal update poin:", err);
+                });
+            } else {
+                alert("Login dulu agar poin tersimpan!");
+                currentPoints += newPoints;
+                pointsDisplay.innerText = currentPoints;
+            }
+        }
+
+        // --- VIDEO & REWARD LOGIC ---
         let lastTime = 0;
         video.addEventListener('timeupdate', () => {
             if (!video.seeking) {
                 if (video.currentTime > lastTime + 2) {
-                    video.currentTime = lastTime; // Kembalikan ke posisi terakhir jika mencoba loncat
+                    video.currentTime = lastTime;
                 } else {
                     lastTime = video.currentTime;
                 }
@@ -103,21 +183,15 @@
             }
         });
 
-        // DETEKSI VIDEO SELESAI
         video.onended = function() {
-            claimBtn.style.display = 'inline-block'; // Munculkan tombol klaim
+            claimBtn.style.display = 'inline-block';
             alert("Video selesai! Silakan ambil poin Anda.");
         };
 
-        // FUNGSI KLAIM POIN
         function claimReward() {
-            points += 10;
-            pointsDisplay.innerText = points;
-            claimBtn.style.display = 'none'; // Sembunyikan lagi tombol setelah diklik
+            savePointsToFirebase(10);
+            claimBtn.style.display = 'none';
             alert("Selamat! 10 Poin telah ditambahkan.");
-            
-            // Catatan: Di sini nantinya Anda bisa memanggil fungsi Firebase
-            // saveToFirebase(points);
         }
     </script>
 </body>
