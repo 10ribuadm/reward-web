@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NontonAsik - Shorts Swipe</title>
+    <title>NontonAsik - TikTok Style</title>
 
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-app-compat.js"></script>
@@ -14,48 +13,63 @@
     <script src="https://www.gstatic.com/firebasejs/9.22.1/firebase-database-compat.js"></script>
 
     <style>
-        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; font-family: 'Poppins', sans-serif; overflow: hidden; }
+        body, html { margin: 0; padding: 0; height: 100%; width: 100%; background: #000; font-family: sans-serif; overflow: hidden; color: white; }
         
-        /* Container Swiper Full Screen */
         .swiper { width: 100%; height: 100vh; }
-        .swiper-slide { position: relative; background: #000; display: flex; align-items: center; justify-content: center; }
+        .swiper-slide { position: relative; background: #000; }
 
-        /* Video Iframe Style */
-        .video-container { width: 100%; height: 100%; position: relative; }
-        iframe { width: 100%; height: 100%; pointer-events: none; }
+        /* Video Iframe TikTok Style */
+        .video-container { width: 100%; height: 100%; display: flex; align-items: center; }
+        .video-container iframe { width: 100vw; height: 100vh; border: none; pointer-events: none; }
 
-        /* Overlay UI */
-        .ui-overlay {
+        /* Overlay UI Khas TikTok */
+        .tiktok-ui {
             position: absolute; inset: 0;
-            background: linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 50%, rgba(0,0,0,0.3) 100%);
-            z-index: 10; padding: 20px;
-            display: flex; flex-direction: column; justify-content: space-between;
-            pointer-events: none;
+            background: linear-gradient(0deg, rgba(0,0,0,0.5) 0%, transparent 40%, rgba(0,0,0,0.3) 100%);
+            z-index: 10; pointer-events: none;
+            display: flex; flex-direction: column; justify-content: flex-end;
+            padding: 20px;
         }
 
-        .header-info { display: flex; justify-content: space-between; align-items: center; pointer-events: auto; }
-        .points-badge { background: rgba(3, 218, 198, 0.2); border: 1px solid #03dac6; padding: 5px 15px; border-radius: 20px; color: #03dac6; font-weight: 700; }
+        /* Sisi Kiri (Info Video) */
+        .video-data { max-width: 80%; pointer-events: auto; margin-bottom: 20px; }
+        .username { font-weight: bold; font-size: 1.1rem; margin-bottom: 8px; display: flex; align-items: center; }
+        .description { font-size: 0.9rem; line-height: 1.4; opacity: 0.9; }
+
+        /* Sisi Kanan (Tombol Aksi) */
+        .side-bar {
+            position: absolute; right: 10px; bottom: 100px;
+            display: flex; flex-direction: column; align-items: center; gap: 20px;
+            pointer-events: auto;
+        }
+        .action-item { text-align: center; }
+        .action-item i { font-size: 1.8rem; display: block; margin-bottom: 5px; }
+        .action-item span { font-size: 0.7rem; font-weight: bold; }
         
-        .video-info { margin-bottom: 50px; pointer-events: auto; }
-        
-        /* Tombol Klaim */
+        .avatar {
+            width: 45px; height: 45px; border-radius: 50%; border: 2px solid white;
+            background: #444; margin-bottom: 10px;
+        }
+
+        /* Tombol Klaim (Floating Tengah) */
         .btn-claim {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: #03dac6; color: #000; border: none; padding: 15px 30px; border-radius: 50px;
-            font-weight: 700; z-index: 100; display: none; pointer-events: auto;
-            box-shadow: 0 0 30px rgba(3, 218, 198, 0.5);
+            position: absolute; top: 40%; left: 50%; transform: translate(-50%, -50%);
+            background: #fe2c55; color: white; border: none; padding: 15px 25px;
+            border-radius: 8px; font-weight: bold; z-index: 100;
+            display: none; pointer-events: auto; box-shadow: 0 4px 15px rgba(254, 44, 85, 0.4);
         }
 
-        #mute-notice {
-            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.6); color: white; padding: 10px 20px; border-radius: 10px;
-            z-index: 50; display: block; text-align: center;
+        /* Mute Notice */
+        #unmute-btn {
+            position: absolute; top: 20px; right: 20px;
+            background: rgba(0,0,0,0.5); padding: 8px 12px; border-radius: 20px;
+            z-index: 100; pointer-events: auto; cursor: pointer;
         }
     </style>
 </head>
 <body>
 
-<div id="mute-notice" onclick="unmuteAll()"><i class="fas fa-volume-mute mb-2 d-block fa-2x"></i> Ketuk untuk Suara</div>
+<div id="unmute-btn" onclick="toggleMute()"><i id="mute-icon" class="fas fa-volume-mute"></i></div>
 
 <div class="swiper mySwiper">
     <div class="swiper-wrapper" id="video-wrapper">
@@ -66,7 +80,7 @@
 <script src="https://www.youtube.com/iframe_api"></script>
 
 <script>
-    // === KONFIGURASI FIREBASE ANDA ===
+    // === FIREBASE CONFIG (Tetap Pakai Milik Anda) ===
     const firebaseConfig = {
         apiKey: "AIzaSyD_5ct08uYoMVSualfGPW8Oiq4y7C9SzJc",
         authDomain: "nontonhepi-4d7a9.firebaseapp.com",
@@ -82,84 +96,100 @@
     const db = firebase.database();
 
     let currentUser = null;
-    let players = {}; // Objek untuk menyimpan semua player YouTube
+    let players = {};
     let isMuted = true;
+    let swiper;
 
-    const shortsList = [
-        { id: "w9k2WhcKl80", title: "Video Lucu 1" },
-        { id: "BbT3BHpKIvg", title: "Video Lucu 2" },
-        { id: "lifSYNqCXo0", title: "Video Lucu 3" },
-        { id: "F7AtzYJPxG8", title: "Video Lucu 4" }
+    // Data Video (Ganti ID Shorts Youtube yang Lucu)
+    const videos = [
+        { id: "w9k2WhcKl80", user: "@lucu_banget", desc: "Mau ketawa takut dosa part 1 #lucu #ngakak" },
+        { id: "FETd9b-pxks", user: "@warga_62", desc: "Momen paling random sedunia wkwk #funny" },
+        { id: "lifSYNqCXo0", user: "@bocil_kocak", desc: "Tahan tawa challenge #shorts" },
+        { id: "F7AtzYJPxG8", user: "@hiburan_malam", desc: "Hiburan receh hari ini gaes!" }
     ];
 
     // 1. Render Slides
     const wrapper = document.getElementById('video-wrapper');
-    shortsList.forEach((v, index) => {
+    videos.forEach((v, i) => {
         wrapper.innerHTML += `
             <div class="swiper-slide">
-                <div class="video-container"><div id="player-${index}"></div></div>
-                <div class="ui-overlay">
-                    <div class="header-info">
-                        <h4 class="m-0 fw-bold">Nonton<span style="color:#03dac6">Asik</span></h4>
-                        <div class="points-badge"><i class="fas fa-coins"></i> <span class="pts-val">0</span></div>
+                <div class="video-container"><div id="player-${i}"></div></div>
+                <button class="btn-claim" id="claim-${i}" onclick="claimPoint('${i}')">🎁 KLAIM 10 POIN</button>
+                <div class="tiktok-ui">
+                    <div class="side-bar">
+                        <div class="avatar"></div>
+                        <div class="action-item"><i class="fas fa-heart"></i><span>12K</span></div>
+                        <div class="action-item"><i class="fas fa-comment-dots"></i><span>452</span></div>
+                        <div class="action-item"><i class="fas fa-share"></i><span>Share</span></div>
                     </div>
-                    <div class="video-info">
-                        <h6>${v.title}</h6>
-                        <p class="small opacity-75">Swipe up untuk video lainnya!</p>
+                    <div class="video-data">
+                        <div class="username">${v.user}</div>
+                        <div class="description">${v.desc}</div>
+                        <div class="mt-2 small text-info"><i class="fas fa-coins me-1"></i> <span class="pts-val">0</span> Poin</div>
                     </div>
                 </div>
-                <button class="btn-claim" id="claim-${index}" onclick="claimPoint('${index}')">🎉 KLAIM 10 POIN</button>
             </div>`;
     });
 
-    // 2. Inisialisasi YouTube API
+    // 2. YouTube API Setup
     function onYouTubeIframeAPIReady() {
-        shortsList.forEach((v, index) => {
-            players[index] = new YT.Player(`player-${index}`, {
+        videos.forEach((v, i) => {
+            players[i] = new YT.Player(`player-${i}`, {
                 videoId: v.id,
-                playerVars: { 'autoplay': 0, 'controls': 0, 'modestbranding': 1, 'loop': 1, 'playlist': v.id },
-                events: { 'onStateChange': (e) => onPlayerStateChange(e, index) }
+                playerVars: { 
+                    'autoplay': (i === 0 ? 1 : 0), 
+                    'controls': 0, 
+                    'modestbranding': 1, 
+                    'loop': 1, 
+                    'playlist': v.id,
+                    'mute': 1 // Mute agar autoplay di HP lancar
+                },
+                events: { 'onStateChange': (e) => checkEnd(e, i) }
             });
         });
         initSwiper();
     }
 
-    // 3. Inisialisasi Swiper (Vertical)
-    let swiper;
+    function checkEnd(event, index) {
+        if (event.data == YT.PlayerState.ENDED) {
+            document.getElementById(`claim-${index}`).style.display = 'block';
+        }
+    }
+
+    // 3. Swiper Setup (Vertical)
     function initSwiper() {
         swiper = new Swiper(".mySwiper", {
             direction: "vertical",
             on: {
                 slideChange: function () {
-                    stopAllVideos();
-                    let currentIdx = swiper.activeIndex;
-                    if (players[currentIdx]) {
-                        if (!isMuted) players[currentIdx].unMute();
-                        players[currentIdx].playVideo();
+                    Object.values(players).forEach(p => p.pauseVideo());
+                    let active = swiper.activeIndex;
+                    if (players[active]) {
+                        if (!isMuted) players[active].unMute();
+                        players[active].playVideo();
                     }
                 }
             }
         });
     }
 
-    function stopAllVideos() {
-        Object.values(players).forEach(p => p.pauseVideo());
-    }
-
-    function unmuteAll() {
-        isMuted = false;
-        document.getElementById('mute-notice').style.display = 'none';
-        players[swiper.activeIndex].unMute();
-        players[swiper.activeIndex].playVideo();
-    }
-
-    function onPlayerStateChange(event, index) {
-        if (event.data == YT.PlayerState.ENDED) {
-            document.getElementById(`claim-${index}`).style.display = 'block';
+    // 4. Mute/Unmute Logic
+    function toggleMute() {
+        isMuted = !isMuted;
+        const icon = document.getElementById('mute-icon');
+        const current = players[swiper.activeIndex];
+        
+        if (!isMuted) {
+            current.unMute();
+            current.playVideo();
+            icon.className = "fas fa-volume-up";
+        } else {
+            current.mute();
+            icon.className = "fas fa-volume-mute";
         }
     }
 
-    // 4. Logika Poin & Auth
+    // 5. Firebase Points (Tetap Pakai Logic Anda)
     auth.onAuthStateChanged(user => {
         if (user) {
             currentUser = user;
@@ -179,7 +209,7 @@
             db.ref('users/' + currentUser.uid + '/points').transaction(c => (c || 0) + 10)
             .then(() => {
                 document.getElementById(`claim-${index}`).style.display = 'none';
-                swiper.slideNext(); // Pindah ke video berikutnya otomatis
+                swiper.slideNext();
             });
         }
     }
